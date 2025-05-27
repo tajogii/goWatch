@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/tajogii/goWatch/internal/pkg/dto"
@@ -18,7 +19,7 @@ func main() {
 	pgConf := storage.PgConf{
 		User:              "user",
 		Password:          "12345",
-		Host:              "localhost",
+		Host:              os.Getenv("DB_HOST"),
 		DBname:            "postgres",
 		MaxConns:          5,
 		MinConns:          0,
