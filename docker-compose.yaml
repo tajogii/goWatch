@@ -6,7 +6,8 @@ services:
     ports:
       - "80:80"
     environment:
-      DB_HOST: db
+      ROOM_DB_HOST: db
+      CONFIG: /config/dev.yaml
     depends_on:
       - db
     restart: unless-stopped

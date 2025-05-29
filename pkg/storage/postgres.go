@@ -11,15 +11,15 @@ import (
 )
 
 type PgConf struct {
-	User              string
-	Password          string
+	User              string `yaml:"user"`
+	Password          string `yaml:"password"`
 	Host              string
-	DBname            string
-	MaxConns          int32
-	MinConns          int32
-	MaxConnLifetime   time.Duration
-	MaxConnIdleTime   time.Duration
-	HealthCheckPeriod time.Duration
+	DBname            string        `yaml:"db"`
+	MaxConns          int32         `yaml:"max-conns"`
+	MinConns          int32         `yaml:"min-conns"`
+	MaxConnLifetime   time.Duration `yaml:"max-conn-lifetime"`
+	MaxConnIdleTime   time.Duration `yaml:"max-conn-idletime"`
+	HealthCheckPeriod time.Duration `yaml:"healthcheck-period"`
 }
 
 type PostgresDB struct {
