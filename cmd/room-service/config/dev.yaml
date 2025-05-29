@@ -1,0 +1,18 @@
+general:
+  public: 80
+  level : debug
+
+db:
+  roomDb:
+    user: user
+    password: 12345
+    db: postgres
+    max-conns: 5
+    min-conns: 0
+    max-conn-lifetime: 1h
+    max-conn-idletime: 30m
+    healthcheck-period: 1h
+
+cache:
+  room:
+    ttl: 1h

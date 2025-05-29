@@ -3,9 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"os"
-	"time"
 
+	"github.com/tajogii/goWatch/cmd/room-service/config"
 	"github.com/tajogii/goWatch/internal/pkg/dto"
 	roomservice "github.com/tajogii/goWatch/internal/room-service"
 	"github.com/tajogii/goWatch/pkg/cache"
@@ -14,35 +13,30 @@ import (
 )
 
 func main() {
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-	pgConf := storage.PgConf{
-		User:              "user",
-		Password:          "12345",
-		Host:              os.Getenv("DB_HOST"),
-		DBname:            "postgres",
-		MaxConns:          5,
-		MinConns:          0,
-		MaxConnLifetime:   time.Hour,
-		MaxConnIdleTime:   time.Minute * 30,
-		HealthCheckPeriod: time.Minute,
+	cfg, err := config.LoadConfig()
+
+	if err != nil {
+		panic(err)
 	}
 
-	roomDb, err := storage.NewPgStorage(ctx, &pgConf)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	roomDb, err := storage.NewPgStorage(ctx, cfg.DB.RoomDb)
 	if err != nil {
 		fmt.Print(err)
 	}
 	defer roomDb.Close()
 
 	roomStorage := roomservice.NewRoomServiceStorage(roomDb)
-	roomCache := cache.NewCache[dto.RoomDto](time.Hour)
+	roomCache := cache.NewCache[dto.RoomDto](cfg.Cache.RoomCache.Ttl)
 	roomService := roomservice.NewRoomService(roomStorage, roomCache)
 
 	roomHandler := roomservice.NewHandler(roomService)
 
 	httpServer := httpserver.NewHttpServer(roomHandler)
 
-	if httpServer.Listen(":80") != nil {
+	if httpServer.Listen(fmt.Sprintf(":%d", cfg.General.PublicPort)) != nil {
 
 	}
 
