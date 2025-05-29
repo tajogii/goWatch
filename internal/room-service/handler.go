@@ -1,6 +1,7 @@
 package roomservice
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
@@ -10,7 +11,7 @@ import (
 )
 
 type roomService interface {
-	GetRoomById(id uuid.UUID) (*dto.RoomDto, error)
+	GetRoomById(ctx context.Context, id uuid.UUID) (*dto.RoomDto, error)
 }
 
 type Handler struct {
@@ -29,6 +30,7 @@ func (h *Handler) RegisterRoutes(api fiber.Router) {
 }
 
 func (h *Handler) getRoomById(c fiber.Ctx) error {
+	ctx := c.Context()
 	id, err := uuid.Parse(c.Params("room"))
 
 	if err != nil {
@@ -38,7 +40,7 @@ func (h *Handler) getRoomById(c fiber.Ctx) error {
 		})
 	}
 
-	room, err := h.roomService.GetRoomById(id)
+	room, err := h.roomService.GetRoomById(ctx, id)
 	if err != nil {
 		return err
 	}

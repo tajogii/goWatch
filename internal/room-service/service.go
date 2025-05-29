@@ -28,12 +28,12 @@ func NewRoomService(storage Storage, cache cache.ICashe[dto.RoomDto]) *RoomServi
 	}
 }
 
-func (s *RoomService) GetRoomById(id uuid.UUID) (*dto.RoomDto, error) {
+func (s *RoomService) GetRoomById(ctx context.Context, id uuid.UUID) (*dto.RoomDto, error) {
 	v, ok := s.cache.Get(id.String())
 	if ok {
 		return &v, nil
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	ctx, cancel := context.WithTimeout(ctx, time.Second*1)
 	defer cancel()
 	room, err := s.storage.GetRoomById(ctx, id)
 	if err != nil {
