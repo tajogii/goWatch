@@ -1,6 +1,6 @@
 general:
-  public: 80
-  level : debug
+  public: 81
+  level : -1
 
 db:
   roomDb:

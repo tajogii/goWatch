@@ -14,8 +14,8 @@ type cache struct {
 }
 
 type General struct {
-	PublicPort int    `yaml:"public"`
-	Level      string `yaml:"level"`
+	PublicPort int `yaml:"public"`
+	Level      int `yaml:"level"`
 }
 
 type DB struct {
