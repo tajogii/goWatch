@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/tajogii/goWatch/internal/pkg/dto"
+	logm "github.com/tajogii/goWatch/pkg/logger"
 	"github.com/tajogii/goWatch/pkg/storage"
 )
 
@@ -63,6 +64,8 @@ func (s *RoomStorage) GetRoomById(ctx context.Context, id uuid.UUID) (*dto.RoomD
 	query.WriteString(selectroomquery)
 	query.WriteString(" WHERE id = $1")
 
+	logger := logm.GetLogger(ctx)
+	logger.Info(query.String())
 	row := s.store.QueryRow(ctx, query.String(), id)
 	var room dto.RoomDto
 

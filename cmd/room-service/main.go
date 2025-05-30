@@ -9,7 +9,6 @@ import (
 	roomservice "github.com/tajogii/goWatch/internal/room-service"
 	"github.com/tajogii/goWatch/pkg/cache"
 	"github.com/tajogii/goWatch/pkg/httpserver"
-	logm "github.com/tajogii/goWatch/pkg/logger"
 	"github.com/tajogii/goWatch/pkg/storage"
 	"go.uber.org/zap"
 )
@@ -20,11 +19,10 @@ func main() {
 		panic(err)
 	}
 
-	logger, _ := logm.BuildLogger(cfg.General.Level)
+	logger, _ := zap.NewProduction()
 	defer func() {
 		logger.Sync()
 	}()
-
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -40,7 +38,7 @@ func main() {
 
 	roomHandler := roomservice.NewHandler(roomService)
 
-	httpServer := httpserver.NewHttpServer(roomHandler).Listen(fmt.Sprintf(":%d", cfg.General.PublicPort))
+	httpServer := httpserver.NewHttpServer(logger, roomHandler).Listen(fmt.Sprintf(":%d", cfg.General.PublicPort))
 
 	if httpServer != nil {
 		logger.Panic("failed to start http server", zap.Error(err))

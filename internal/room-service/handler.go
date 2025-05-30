@@ -30,7 +30,6 @@ func (h *Handler) RegisterRoutes(api fiber.Router) {
 }
 
 func (h *Handler) getRoomById(c fiber.Ctx) error {
-	ctx := c.Context()
 	id, err := uuid.Parse(c.Params("room"))
 
 	if err != nil {
@@ -40,7 +39,7 @@ func (h *Handler) getRoomById(c fiber.Ctx) error {
 		})
 	}
 
-	room, err := h.roomService.GetRoomById(ctx, id)
+	room, err := h.roomService.GetRoomById(c.Context(), id)
 	if err != nil {
 		return err
 	}
