@@ -1,6 +1,8 @@
 package roomservice
 
 import (
+	"context"
+	"errors"
 	"fmt"
 
 	"github.com/gofiber/fiber/v3"
@@ -10,7 +12,7 @@ import (
 )
 
 type roomService interface {
-	GetRoomById(id uuid.UUID) (*dto.RoomDto, error)
+	GetRoomById(ctx context.Context, id uuid.UUID) (*dto.RoomDto, error)
 }
 
 type Handler struct {
@@ -38,8 +40,14 @@ func (h *Handler) getRoomById(c fiber.Ctx) error {
 		})
 	}
 
-	room, err := h.roomService.GetRoomById(id)
+	room, err := h.roomService.GetRoomById(c.Context(), id)
 	if err != nil {
+		if errors.Is(err, errNotFound) {
+			return c.Status(404).JSON(httpserver.Error{
+				Message:     "room not found",
+				Description: fmt.Sprintf("room with id: %s, doesnt exist", c.Params("room")),
+			})
+		}
 		return err
 	}
 

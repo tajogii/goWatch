@@ -10,21 +10,25 @@ import (
 	"github.com/tajogii/goWatch/pkg/cache"
 	"github.com/tajogii/goWatch/pkg/httpserver"
 	"github.com/tajogii/goWatch/pkg/storage"
+	"go.uber.org/zap"
 )
 
 func main() {
 	cfg, err := config.LoadConfig()
-
 	if err != nil {
 		panic(err)
 	}
 
+	logger, _ := zap.NewProduction()
+	defer func() {
+		logger.Sync()
+	}()
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
 	roomDb, err := storage.NewPgStorage(ctx, cfg.DB.RoomDb)
 	if err != nil {
-		fmt.Print(err)
+		logger.Panic("failed connect to roomDb", zap.Error(err))
 	}
 	defer roomDb.Close()
 
@@ -34,10 +38,10 @@ func main() {
 
 	roomHandler := roomservice.NewHandler(roomService)
 
-	httpServer := httpserver.NewHttpServer(roomHandler)
+	httpServer := httpserver.NewHttpServer(logger, roomHandler).Listen(fmt.Sprintf(":%d", cfg.General.PublicPort))
 
-	if httpServer.Listen(fmt.Sprintf(":%d", cfg.General.PublicPort)) != nil {
-
+	if httpServer != nil {
+		logger.Panic("failed to start http server", zap.Error(err))
 	}
 
 }

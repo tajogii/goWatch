@@ -2,6 +2,8 @@ package httpserver
 
 import (
 	"github.com/gofiber/fiber/v3"
+	logm "github.com/tajogii/goWatch/pkg/logger"
+	"go.uber.org/zap"
 )
 
 type Error struct {
@@ -13,8 +15,10 @@ type RegisterRoute interface {
 	RegisterRoutes(r fiber.Router)
 }
 
-func NewHttpServer(handlers ...RegisterRoute) *fiber.App {
+func NewHttpServer(l *zap.Logger, handlers ...RegisterRoute) *fiber.App {
 	app := fiber.New()
+	loggerMiddleware := createloggerMiddleware(l)
+	app.Use(loggerMiddleware)
 	api := app.Group("/api")
 
 	for _, h := range handlers {
@@ -22,4 +26,13 @@ func NewHttpServer(handlers ...RegisterRoute) *fiber.App {
 	}
 
 	return app
+}
+
+func createloggerMiddleware(l *zap.Logger) fiber.Handler {
+	return func(c fiber.Ctx) error {
+		ctx := logm.SetLogger(c.Context(), l)
+		c.SetContext(ctx)
+		return c.Next()
+	}
+
 }
