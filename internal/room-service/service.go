@@ -3,11 +3,11 @@ package roomservice
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/google/uuid"
 	"github.com/tajogii/goWatch/internal/pkg/dto"
 	"github.com/tajogii/goWatch/pkg/cache"
+	logm "github.com/tajogii/goWatch/pkg/logger"
 )
 
 type Storage interface {
@@ -29,19 +29,21 @@ func NewRoomService(storage Storage, cache cache.ICashe[dto.RoomDto]) *RoomServi
 }
 
 func (s *RoomService) GetRoomById(ctx context.Context, id uuid.UUID) (*dto.RoomDto, error) {
+	logger := logm.GetLogger(ctx)
 	v, ok := s.cache.Get(id.String())
 	if ok {
 		return &v, nil
 	}
-	ctx, cancel := context.WithTimeout(ctx, time.Second*1)
-	defer cancel()
+	logger.Warn(fmt.Sprintf("failed to get room with id from cache: %s", id))
+
 	room, err := s.storage.GetRoomById(ctx, id)
 	if err != nil {
-		return &dto.RoomDto{}, fmt.Errorf("cannot get room by id = %s: %v ", id.String(), err)
+		return &dto.RoomDto{}, err
 	}
 
 	go func() {
 		s.cache.Set(id.String(), *room)
+		logger.Info(fmt.Sprintf("set to cache room with id: %s", id))
 	}()
 
 	return room, nil
