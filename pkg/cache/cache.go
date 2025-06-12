@@ -22,10 +22,12 @@ type Cache[T any] struct {
 }
 
 func NewCache[T any](ttl time.Duration) *Cache[T] {
-	return &Cache[T]{
+	newCache := &Cache[T]{
 		items:      make(map[string]Item[T]),
 		expiration: time.Now().Add(ttl).UnixNano(),
 	}
+	return newCache
+
 }
 
 func (c *Cache[T]) Set(key string, value T) {
@@ -49,7 +51,7 @@ func (c *Cache[T]) Get(key string) (T, bool) {
 	}
 
 	if item.Expiration > 0 && time.Now().UnixNano() > item.Expiration {
-		c.delete(key)
+		c.Remove(key)
 		var v T
 		return v, false
 	}
@@ -57,7 +59,11 @@ func (c *Cache[T]) Get(key string) (T, bool) {
 	return item.Value, true
 }
 
-func (c *Cache[T]) delete(key string) {
+func (c *Cache[T]) Remove(key string) {
+	c.remove(key)
+}
+
+func (c *Cache[T]) remove(key string) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 
