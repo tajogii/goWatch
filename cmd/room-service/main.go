@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/tajogii/goWatch/cmd/room-service/config"
-	"github.com/tajogii/goWatch/internal/pkg/dto"
 	roomservice "github.com/tajogii/goWatch/internal/room-service"
 	"github.com/tajogii/goWatch/pkg/cache"
 	"github.com/tajogii/goWatch/pkg/httpserver"
@@ -33,7 +32,7 @@ func main() {
 	defer roomDb.Close()
 
 	roomStorage := roomservice.NewRoomServiceStorage(roomDb)
-	roomCache := cache.NewCache[dto.RoomDto](cfg.Cache.RoomCache.Ttl)
+	roomCache := cache.NewCache[roomservice.RoomDto](cfg.Cache.RoomCache.Ttl)
 	roomService := roomservice.NewRoomService(roomStorage, roomCache)
 
 	roomHandler := roomservice.NewHandler(roomService)
