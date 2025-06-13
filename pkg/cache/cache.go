@@ -16,16 +16,17 @@ type Item[T any] struct {
 }
 
 type Cache[T any] struct {
-	items      map[string]Item[T]
-	mu         sync.RWMutex
-	expiration int64
+	items map[string]Item[T]
+	mu    sync.RWMutex
+	ttl   time.Duration
 }
 
 func NewCache[T any](ttl time.Duration) *Cache[T] {
 	newCache := &Cache[T]{
-		items:      make(map[string]Item[T]),
-		expiration: time.Now().Add(ttl).UnixNano(),
+		items: make(map[string]Item[T]),
+		ttl:   ttl,
 	}
+	go newCache.cleanUp()
 	return newCache
 
 }
@@ -36,22 +37,23 @@ func (c *Cache[T]) Set(key string, value T) {
 
 	c.items[key] = Item[T]{
 		Value:      value,
-		Expiration: c.expiration,
+		Expiration: time.Now().Add(c.ttl).UnixNano(),
 	}
 }
 
 func (c *Cache[T]) Get(key string) (T, bool) {
 	c.mu.RLock()
-	defer c.mu.RUnlock()
 
 	item, found := c.items[key]
 	if !found {
 		var v T
+		c.mu.RUnlock()
 		return v, false
 	}
+	c.mu.RUnlock()
 
 	if item.Expiration > 0 && time.Now().UnixNano() > item.Expiration {
-		c.Remove(key)
+		c.remove(key)
 		var v T
 		return v, false
 	}
@@ -68,4 +70,19 @@ func (c *Cache[T]) remove(key string) {
 	defer c.mu.Unlock()
 
 	delete(c.items, key)
+}
+
+func (c *Cache[T]) cleanUp() {
+	ticker := time.NewTicker(1 * time.Hour)
+	defer ticker.Stop()
+
+	for range ticker.C {
+		c.mu.Lock()
+		for k, v := range c.items {
+			if v.Expiration <= time.Now().UnixNano() {
+				delete(c.items, k)
+			}
+		}
+		c.mu.Unlock()
+	}
 }
