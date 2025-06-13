@@ -15,4 +15,4 @@ db:
 
 cache:
   room:
-    ttl: 1h
+    ttl: 24h

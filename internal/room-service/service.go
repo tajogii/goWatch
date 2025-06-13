@@ -36,6 +36,7 @@ func (s *RoomService) GetRoomById(ctx context.Context, id uuid.UUID) (*RoomDto, 
 	logger := logm.GetLogger(ctx)
 	v, ok := s.cache.Get(id.String())
 	if ok {
+		logger.Info(fmt.Sprintf("get room with id from cache: %s", id))
 		return &v, nil
 	}
 	logger.Warn(fmt.Sprintf("failed to get room with id from cache: %s", id))
